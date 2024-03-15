@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  user-service:
+    container_name: user-service
+    build: user-service/.
+    restart: on-failure
+    env_file: user-service/.env
+    environment:
+      APP_NAME: user-service
+      MESSENGER_TRANSPORT_DSN: amqp://user:password@rabbitmq/%2f/messages
+    tty: true
+    stdin_open: true
+    depends_on:
+      - rabbitmq
+      - mysql
+    networks:
+      - bridgenet
+    ports:
+      - "8321:80"
+
+  notification-service:
+    container_name: notification-service
+    build: notification-service/.
+    restart: on-failure
+    env_file: notification-service/.env
+    environment:
+      APP_NAME: notification-service
+      MESSENGER_TRANSPORT_DSN: amqp://user:password@rabbitmq/%2f/messages
+    tty: true
+    stdin_open: true
+    depends_on:
+      - rabbitmq
+      - mysql
+    networks:
+      - bridgenet
+    ports:
+      - "8322:80"
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.11.0-management-alpine
+    ports:
+      - 15672:15672
+      - 5672:5672
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+    networks:
+      - bridgenet
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: nb-int
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_USER: root
+      MYSQL_USER: root
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - db-data:/var/lib/mysql/data
+    networks:
+      - bridgenet
+
+networks:
+  bridgenet:
+
+volumes:
+  db-data:

@@ -1,0 +1,6 @@
+[submodule "user-service"]
+	path = user-service
+	url = https://github.com/victorive/user-service.git
+[submodule "notification-service"]
+	path = notification-service
+	url = https://github.com/victorive/notification-service.git
